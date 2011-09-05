@@ -1,8 +1,6 @@
 package edu.ucdavis.ece.smartsync;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
 
 import com.android.internal.os.PowerProfile;
 

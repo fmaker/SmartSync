@@ -3,8 +3,8 @@ package edu.ucdavis.ece.smartsync;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 
 /**
@@ -15,8 +15,8 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class PowerChangedReceiver extends BroadcastReceiver{
 	private static final String TAG = "BatteryChangedReceiver";
 	
-	private static final int POWER_DISCONNECTED = 0;
-	private static final int POWER_CONNECTED = 1;
+	public static final int POWER_DISCONNECTED = 0;
+	public static final int POWER_CONNECTED = 1;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
@@ -25,10 +25,10 @@ public class PowerChangedReceiver extends BroadcastReceiver{
 		int powerConnected = -1;
 		
 		if(action.equals(Intent.ACTION_POWER_CONNECTED)){
-			powerConnected = 1;
+			powerConnected = POWER_CONNECTED;
 		}
 		else if(action.equals(Intent.ACTION_POWER_DISCONNECTED)){
-			powerConnected = 0;
+			powerConnected = POWER_DISCONNECTED;
 		}
 		
 		if(powerConnected != -1){
@@ -38,43 +38,39 @@ public class PowerChangedReceiver extends BroadcastReceiver{
 
 			SQLiteDatabase db = mDbHelper.getWritableDatabase();
 			String stmt = String.format("INSERT INTO %s ( %s, %s) VALUES (%s, %s);",
-					mDbHelper.TABLE_NAME, mDbHelper.KEY_TIMESTAMP, mDbHelper.KEY_POWER_CONNECTED,
+					BatteryLogOpenHelper.TABLE_NAME, 
+					BatteryLogOpenHelper.KEY_TIMESTAMP, 
+					BatteryLogOpenHelper.KEY_POWER_CONNECTED,
 					"strftime('%s', 'now')", powerConnected);
 			db.execSQL(stmt);
-
 			db.close();
 		}
 
 	}
-	
-	private class BatteryLogOpenHelper extends SQLiteOpenHelper {
+    
+    public int secondsSinceLastCharge(Context context){
+		
+		/* Open database */
+		BatteryLogOpenHelper mDbHelper = new BatteryLogOpenHelper(context);
 
-		protected static final int DATABASE_VERSION = 1;
-		protected static final String DATABASE_NAME = "battery_log.db";
-		protected static final String TABLE_NAME = "log";
-	    
-		protected static final String KEY_TIMESTAMP = "timestamp";
-		protected static final String KEY_POWER_CONNECTED = "power_connected";
-	    
-	    private static final String TABLE_CREATE =
-	                "CREATE TABLE " + TABLE_NAME + " (" +
-	                KEY_TIMESTAMP + " INTEGER, " +
-	                KEY_POWER_CONNECTED + " INTEGER);";
+		SQLiteDatabase db = mDbHelper.getReadableDatabase();
+		Cursor c = db.query(
+					BatteryLogOpenHelper.TABLE_NAME, 
+					new String[]{BatteryLogOpenHelper.KEY_TIMESTAMP},
+					String.format("%s == %d",
+								BatteryLogOpenHelper.KEY_POWER_CONNECTED,
+								String.valueOf(POWER_CONNECTED)),
+					null, null, null,
+					String.format("%s DESC",BatteryLogOpenHelper.KEY_TIMESTAMP),
+					"1");
 
-		public BatteryLogOpenHelper(Context context) {
-	        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-		}
+		int lastChargeTimestamp = c.getInt(c.getColumnIndex(BatteryLogOpenHelper.KEY_TIMESTAMP));
 
-	    @Override
-	    public void onCreate(SQLiteDatabase db) {
-	        db.execSQL(TABLE_CREATE);
-	    }
+		db.close();
+		
+		return lastChargeTimestamp;
+    }
+    
 
-		@Override
-		public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-			db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-			onCreate(db);
-		}
-	}
 
 }

@@ -1,10 +1,14 @@
 package edu.ucdavis.ece.smartsync;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.BatteryManager;
 import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.text.format.DateFormat;
@@ -20,14 +24,17 @@ public class UserProfile {
 	private static final String TAG = "UserProfile";
 	private static final int SECS_IN_MINUTE = 60;
 	private static final int SECS_IN_HOUR = 60 * SECS_IN_MINUTE;
+	private static final int MIN_DISCHARGE_TIME = SECS_IN_MINUTE * 30 ; /* Half hour */
 	
 	private static final int ARRIVAL_BIN_WIDTH = 60; /* In minutes */
 	private static final int LENGTH_BIN_WIDTH = 15; /* In seconds */
 	
+	BatteryLogOpenHelper sDbHelper;
 	HashMap<Integer, Integer> arrivalHistogram;
 	HashMap<Integer, Integer> lengthHistogram;
 	
 	public UserProfile(Context context){
+		sDbHelper = new BatteryLogOpenHelper(context);
 		arrivalHistogram = new HashMap<Integer, Integer>();
 		lengthHistogram = new HashMap<Integer, Integer>();
 
@@ -43,6 +50,47 @@ public class UserProfile {
              	 }
             } while (c.moveToNext());
          }
+        c.close();
+        
+	}
+
+
+	public List<Integer> getDischargeTimes(){
+		ArrayList<Integer> times = new ArrayList<Integer>();
+
+		/* Open database */
+
+		SQLiteDatabase db = sDbHelper.getReadableDatabase();
+		
+		Cursor c = db.query(
+					BatteryLogOpenHelper.TABLE_NAME, 
+					new String[]{BatteryLogOpenHelper.KEY_TIMESTAMP,BatteryLogOpenHelper.KEY_POWER_CONNECTED},
+					null, null, null, null, null, null);
+
+        if (c.moveToFirst()) {
+        	int lastTimestamp = -1, timestamp;
+        	boolean wasConnected = false, connected;
+        	
+            do{
+            	connected = c.getInt(c.getColumnIndex(BatteryLogOpenHelper.KEY_POWER_CONNECTED)) == 1 ? true : false;
+            	timestamp = c.getInt(c.getColumnIndex(BatteryLogOpenHelper.KEY_TIMESTAMP));
+            	
+            	/* Battery was charged and timestamp recorded */
+            	if( (connected && !wasConnected) &&
+            		lastTimestamp >= 0){
+            		final int dischargeTime = timestamp - lastTimestamp;
+            		if(dischargeTime >= MIN_DISCHARGE_TIME)
+            			times.add(timestamp - lastTimestamp);
+            	}
+            	
+            	lastTimestamp = timestamp;
+            	wasConnected = connected;
+
+            } while (c.moveToNext());
+         }
+        c.close();
+        
+        return times;
 	}
 
 	private void addLengthToHistogram(Cursor c) {
@@ -53,7 +101,9 @@ public class UserProfile {
    	   	  length = Integer.parseInt(c.getString(c.getColumnIndex(Calls.DURATION)));
    	   	  bin = getBinIndex(length, LENGTH_BIN_WIDTH);
    	   	  
-   	   	  /* If already have this bin, get current count */
+   	   	  /* If already have this bin, get current count
+   	   	   * Only record if greater than minimum charge threshold
+   	   	   */
    	   	  if(lengthHistogram.containsKey(bin))
    	   		  binCount = lengthHistogram.get(bin);
    	   	  
