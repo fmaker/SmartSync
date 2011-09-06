@@ -2,13 +2,15 @@ package edu.ucdavis.ece.smartsync;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import edu.ucdavis.ece.smartsync.profiler.IProfile;
+
+import android.util.Pair;
+
 /**
  * Threshold calculator
  * 
- * We assume that cell phone is active (from charging to next charging) while
- * the user is 'on the move'. This time is relatively predictable. So instead of
- * average over absolute charging time, the calculation average over the active
- * period.
+ * Generates the threshold table which determines the amount of time after
+ * the last sync to sync again given the current state.
  * 
  * So time slot 0 in the threshold is the last time the phone is disconnected
  * from charger.
@@ -17,10 +19,10 @@ import java.util.Arrays;
  * 
  */
 
-public class Threshold {
+public class ThresholdTableGenerator {
 
 	private IProfile profile;
-	private int horizon;
+	private int getHorizon;
 	private int maxBattery;
 	private int secondsPerTimeslot;
 
@@ -39,12 +41,12 @@ public class Threshold {
 
 	// charging time
 
-	public Threshold(IProfile profile) {
+	public ThresholdTableGenerator(IProfile profile) {
 		this.profile = profile;
-		horizon = profile.getHorizon();
+		getHorizon = profile.getHorizon();
 		maxBattery = profile.getMaxBattery();
-		vs = new double[horizon][maxBattery][horizon];
-		vi = new double[horizon][maxBattery][horizon];
+		vs = new double[getHorizon][maxBattery][getHorizon];
+		vi = new double[getHorizon][maxBattery][getHorizon];
 
 		for (double[][] mat : vs)
 			for (double[] row : mat)
@@ -56,11 +58,11 @@ public class Threshold {
 	}
 
 	public double[][][] getThreshold() {
-		double[][][] threshold = new double[horizon][maxBattery][horizon];
+		double[][][] threshold = new double[getHorizon][maxBattery][getHorizon];
 
-		for (int i = 0; i < horizon; i++) {
+		for (int i = 0; i < getHorizon; i++) {
 			for (int j = 0; j < maxBattery; j++) {
-				for (int k = 0; k < horizon; k++) {
+				for (int k = 0; k < getHorizon; k++) {
 					threshold[i][j][k] = V_star(i, j, k);
 				}
 			}
@@ -101,8 +103,8 @@ public class Threshold {
 
 		for (int i = 0; i < RV.size(); i++) {
 			Pair<Integer, Double> thisSlot = RV.get(i);
-			int used = thisSlot.getX();
-			double prob = thisSlot.getY();
+			int used = thisSlot.first;
+			double prob = thisSlot.second;
 			int E = Er - used;
 			if (E < 0) {
 				used = Er;

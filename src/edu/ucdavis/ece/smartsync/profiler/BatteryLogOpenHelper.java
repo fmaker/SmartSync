@@ -1,9 +1,13 @@
-package edu.ucdavis.ece.smartsync;
+package edu.ucdavis.ece.smartsync.profiler;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+/**
+ * @author fmaker
+ *
+ */
 public class BatteryLogOpenHelper extends SQLiteOpenHelper {
 
 	public static final String TABLE_NAME = "log";

@@ -1,5 +1,7 @@
-package edu.ucdavis.ece.smartsync;
+package edu.ucdavis.ece.smartsync.profiler;
 import java.util.ArrayList;
+
+import android.util.Pair;
 
 /**
  * We assume that cell phone is active (from charging to next charging) while
@@ -7,13 +9,13 @@ import java.util.ArrayList;
  * average over absolute charging time, the calculation average over the active
  * period.
  * 
- * For profile, each day is a unit. We don't care about when the day start, but
- * instead we care only about length of the day. So we kind of 'align' each day
+ * For profile, each discharge period is a unit. We don't care about when discharging starts, but
+ * instead we care only about length of the discharging time. So we 'align' each period
  * by their starting time. E.g. (assume time slot is 1 hour)
  * 
  * Time slot: 1 2 3...
  * 
- * Day 1: 8am 9am 10am...
+ * Discharging Period 1: 8am 9am 10am...
  * 
  * Remaining: 100 90 80...
  * 
@@ -44,9 +46,9 @@ public interface IProfile {
 	/**
 	 * Get the charging probability
 	 * 
-	 * @return
+	 * @return probability of charging from 0 to 1 inclusive
 	 */
-	public double ProbCharging(int t);
+	public double ProbCharging(int timeSinceSync);
 
 	/**
 	 * Get the energy consumption in a time slot. Energy used by everything
@@ -54,7 +56,22 @@ public interface IProfile {
 	 * 
 	 * @return <EnergyUsed, Probability>
 	 */
-	public ArrayList<Pair<Double, Double>> EnergyUsedRV(int t);
+	public ArrayList<Pair<Integer, Double>> EnergyUsedRV(int timeSinceSync);
 
+	/**
+	 * Get the maximum length of a discharging period.
+	 * 
+	 * @return length in seconds
+	 */
 	public int getHorizon();
+
+
+	/**
+	 * Get the energy consumption in a time slot. Energy used by everything
+	 * except sync we scheduled. (Which can be phone call only)
+	 * 
+	 * @return <EnergyUsed, Probability>
+	 */
+	public int getMaxBattery();
+
 }

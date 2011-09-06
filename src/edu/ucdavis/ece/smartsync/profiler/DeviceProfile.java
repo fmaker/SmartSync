@@ -1,9 +1,13 @@
-package edu.ucdavis.ece.smartsync;
+package edu.ucdavis.ece.smartsync.profiler;
 
 import android.content.Context;
 
 import com.android.internal.os.PowerProfile;
 
+/**
+ * @author fmaker
+ *
+ */
 public class DeviceProfile {
 	private static PowerProfile sPowerProfile;
 	

@@ -1,14 +1,14 @@
-package edu.ucdavis.ece.smartsync;
+package edu.ucdavis.ece.smartsync.profiler;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.BatteryManager;
 import android.provider.CallLog;
 import android.provider.CallLog.Calls;
 import android.text.format.DateFormat;
@@ -18,6 +18,7 @@ import android.util.Log;
 /**
  * Provides access to call histograms
  * 
+ * @author fmaker
  */
 public class UserProfile {
 	private static final boolean DEBUG = true;
@@ -53,32 +54,43 @@ public class UserProfile {
         c.close();
         
 	}
+	
+/*	public long lastDischargeTime(){
+
+		 Doesn't work yet 
+		SQLiteDatabase db = sDbHelper.getReadableDatabase();
+		Cursor c = db.query(
+					BatteryLogOpenHelper.TABLE_NAME, 
+					new String[]{BatteryLogOpenHelper.KEY_TIMESTAMP,BatteryLogOpenHelper.KEY_POWER_CONNECTED},
+					String.format("%s == %d", BatteryLogOpenHelper.KEY_TIMESTAMP),
+					null, null, null, null);
+		db.close();
+		c.close();
+		return Long.MIN_VALUE;
+	}*/
 
 
-	public List<Integer> getDischargeTimes(){
-		ArrayList<Integer> times = new ArrayList<Integer>();
-
-		/* Open database */
+	public List<Long> getDischargeTimes(){
+		ArrayList<Long> times = new ArrayList<Long>();
 
 		SQLiteDatabase db = sDbHelper.getReadableDatabase();
-		
 		Cursor c = db.query(
 					BatteryLogOpenHelper.TABLE_NAME, 
 					new String[]{BatteryLogOpenHelper.KEY_TIMESTAMP,BatteryLogOpenHelper.KEY_POWER_CONNECTED},
 					null, null, null, null, null, null);
 
         if (c.moveToFirst()) {
-        	int lastTimestamp = -1, timestamp;
+        	long lastTimestamp = -1, timestamp;
         	boolean wasConnected = false, connected;
         	
             do{
             	connected = c.getInt(c.getColumnIndex(BatteryLogOpenHelper.KEY_POWER_CONNECTED)) == 1 ? true : false;
-            	timestamp = c.getInt(c.getColumnIndex(BatteryLogOpenHelper.KEY_TIMESTAMP));
+            	timestamp = c.getLong(c.getColumnIndex(BatteryLogOpenHelper.KEY_TIMESTAMP));
             	
             	/* Battery was charged and timestamp recorded */
             	if( (connected && !wasConnected) &&
             		lastTimestamp >= 0){
-            		final int dischargeTime = timestamp - lastTimestamp;
+            		final long dischargeTime = timestamp - lastTimestamp;
             		if(dischargeTime >= MIN_DISCHARGE_TIME)
             			times.add(timestamp - lastTimestamp);
             	}

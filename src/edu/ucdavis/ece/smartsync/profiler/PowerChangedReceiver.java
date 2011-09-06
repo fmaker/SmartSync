@@ -1,4 +1,4 @@
-package edu.ucdavis.ece.smartsync;
+package edu.ucdavis.ece.smartsync.profiler;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,6 +11,8 @@ import android.database.sqlite.SQLiteDatabase;
  * Records log of battery charging and discharging events
  * @todo Make content provider
  * @todo Handle battery charging events when system not running
+ * 
+ * @author fmaker
  */
 public class PowerChangedReceiver extends BroadcastReceiver{
 	private static final String TAG = "BatteryChangedReceiver";
