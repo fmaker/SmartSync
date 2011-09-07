@@ -45,10 +45,21 @@ public class Profile implements IProfile{
 
 	}
 
+	/* Determines the charge probability by taking the count of all the
+	 * previous discharge durations less than or equal to timeSinceSync divided
+	 * by the total number discharge durations.
+	 * 
+	 */
 	@Override
-	public double ProbCharging(int t) {
-		// TODO Auto-generated method stub
-		return 0;
+	public double getChargeProb(int timeSinceSync) {
+		int count = 0;
+		List<Long> d = mUserProfile.getDischargeTimes();
+		
+		for(Long i : d){
+			if(i <= timeSinceSync)
+				count++;
+		}
+		return (double) count/d.size();
 	}
 
 	@Override
