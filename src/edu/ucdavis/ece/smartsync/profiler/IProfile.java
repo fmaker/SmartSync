@@ -48,15 +48,17 @@ public interface IProfile {
 	 * 
 	 * @return probability of charging from 0 to 1 inclusive
 	 */
-	public double ProbCharging(int timeSinceSync);
+	public double getChargeProb(int timeSinceSync);
 
 	/**
 	 * Get the energy consumption in a time slot. Energy used by everything
-	 * except sync we scheduled. (Which can be phone call only)
+	 * except sync we scheduled. (Which can be phone call only). This value is
+	 * a random variable based on energy consumption from all the time periods
+	 * logged in the past.
 	 * 
 	 * @return <EnergyUsed, Probability>
 	 */
-	public ArrayList<Pair<Integer, Double>> EnergyUsedRV(int timeSinceSync);
+	public ArrayList<Pair<Integer, Double>> getEnergyUsed(int timeSinceSync);
 
 	/**
 	 * Get the maximum length of a discharging period.
@@ -70,7 +72,7 @@ public interface IProfile {
 	 * Get the energy consumption in a time slot. Energy used by everything
 	 * except sync we scheduled. (Which can be phone call only)
 	 * 
-	 * @return <EnergyUsed, Probability>
+	 * @return Maximum battery energy (when fully charged)
 	 */
 	public int getMaxBattery();
 

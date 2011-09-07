@@ -71,7 +71,7 @@ public class ThresholdTableGenerator {
 	}
 
 	private double V_star(int t, int Er, int tau) {
-		double p = this.profile.ProbCharging(t);
+		double p = this.profile.getChargeProb(t);
 		return Er * Re * p + V(t, Er, tau) * (1 - p);
 	}
 
@@ -97,7 +97,7 @@ public class ThresholdTableGenerator {
 	}
 
 	private double reward(int t, int Er, int tau, boolean sync) {
-		ArrayList<Pair<Integer, Double>> RV = profile.EnergyUsedRV(t);
+		ArrayList<Pair<Integer, Double>> RV = profile.getEnergyUsed(t);
 
 		double reward = 0;
 

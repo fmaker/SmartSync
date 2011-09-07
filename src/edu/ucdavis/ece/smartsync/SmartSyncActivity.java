@@ -1,21 +1,8 @@
 package edu.ucdavis.ece.smartsync;
 
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.BatteryManager;
 import android.os.Bundle;
-import android.provider.CallLog;
-import android.provider.CallLog.Calls;
 import android.util.Log;
-import android.widget.RemoteViews.ActionException;
-
-import com.android.internal.os.PowerProfile;
-
 import edu.ucdavis.ece.smartsync.profiler.Profile;
 
 

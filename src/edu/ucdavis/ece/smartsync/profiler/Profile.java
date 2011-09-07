@@ -1,13 +1,13 @@
 package edu.ucdavis.ece.smartsync.profiler;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.BatteryManager;
-import android.util.Log;
 import android.util.Pair;
 
 import com.android.internal.os.PowerProfile;
@@ -52,7 +52,7 @@ public class Profile implements IProfile{
 	}
 
 	@Override
-	public ArrayList<Pair<Integer, Double>> EnergyUsedRV(int t) {
+	public ArrayList<Pair<Integer, Double>> getEnergyUsed(int t) {
 		// TODO Auto-generated method stub
 		return null;
 	}
