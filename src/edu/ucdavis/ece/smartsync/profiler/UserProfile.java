@@ -70,8 +70,8 @@ public class UserProfile {
 	}*/
 
 
-	public List<Long> getDischargeTimes(){
-		ArrayList<Long> times = new ArrayList<Long>();
+	public List<Integer> getDischargeTimes(){
+		ArrayList<Integer> times = new ArrayList<Integer>();
 
 		SQLiteDatabase db = sDbHelper.getReadableDatabase();
 		Cursor c = db.query(
@@ -90,9 +90,9 @@ public class UserProfile {
             	/* Battery was charged and timestamp recorded */
             	if( (connected && !wasConnected) &&
             		lastTimestamp >= 0){
-            		final long dischargeTime = timestamp - lastTimestamp;
+            		final int dischargeTime = (int) (timestamp - lastTimestamp);
             		if(dischargeTime >= MIN_DISCHARGE_TIME)
-            			times.add(timestamp - lastTimestamp);
+            			times.add(dischargeTime);
             	}
             	
             	lastTimestamp = timestamp;

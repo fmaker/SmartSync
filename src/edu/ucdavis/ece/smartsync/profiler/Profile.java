@@ -23,6 +23,8 @@ public class Profile implements IProfile{
 	private static final String TAG = "Profile";
 	private static final int SECS_IN_MIN = 60;
 	private static final int SECS_IN_HOUR = 60*SECS_IN_MIN;
+	private static final int MIN_HORIZON = SECS_IN_HOUR*24; /* 1 Day */
+	private static final float HORIZON_TOL = 1.10F; /* 110% */
 
 	private BatteryStatsReceiver batteryStatsReceiver;
 	public PowerProfile mPowerProfile;
@@ -47,15 +49,13 @@ public class Profile implements IProfile{
 
 	/* Determines the charge probability by taking the count of all the
 	 * previous discharge durations less than or equal to timeSinceSync divided
-	 * by the total number discharge durations.
-	 * 
-	 */
+	 * by the total number discharge durations. */
 	@Override
 	public double getChargeProb(int timeSinceSync) {
 		int count = 0;
-		List<Long> d = mUserProfile.getDischargeTimes();
+		List<Integer> d = mUserProfile.getDischargeTimes();
 		
-		for(Long i : d){
+		for(int i : d){
 			if(i <= timeSinceSync)
 				count++;
 		}
@@ -64,14 +64,22 @@ public class Profile implements IProfile{
 
 	@Override
 	public ArrayList<Pair<Integer, Double>> getEnergyUsed(int t) {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
 	@Override
 	public int getHorizon() {
-		// TODO Auto-generated method stub
-		return 0;
+		int max = MIN_HORIZON;
+		List<Integer> d = mUserProfile.getDischargeTimes();
+		
+		for(int i : d){
+			if(i > max)
+				max = i;
+		}
+
+		/* Return max times tolerance in case duration even larger */
+		return (int) (max * HORIZON_TOL);
 	}
 
 	@Override
@@ -92,8 +100,6 @@ public class Profile implements IProfile{
 			mPercent = (float) level / (float)scale;
 			
 			mEnergy = (float) ((mPowerProfile.getBatteryCapacity() / MA_IN_AMP) * SECS_IN_HOUR * voltage * mPercent);
-			
-			
 
 		}
 
