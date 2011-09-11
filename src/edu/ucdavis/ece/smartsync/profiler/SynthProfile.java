@@ -7,19 +7,34 @@ import android.util.Pair;
 
 public class SynthProfile implements IProfile {
 	private int horizon;
-	private int[] profile;
+	private ArrayList<ArrayList<Pair<Integer, Double>>> profile;
 
 	private int maxUsed;
+	
+	private Random r = new Random();
 
 	public SynthProfile() {
 		horizon = 10;
-		profile = new int[horizon];
 		maxUsed = 5;
 
-		Random r = new Random();
+		profile = new  ArrayList<ArrayList<Pair<Integer, Double>>>();
+		
+		for(int n = 0; n<horizon; n++){
+			ArrayList<Pair<Integer, Double>> used = new ArrayList<Pair<Integer, Double>>();
+			double[] prob = new double[5];
 
-		for (int i = 0; i < horizon; i++) {
-			profile[i] = r.nextInt(2);
+			double total = 0;
+			for (int i = 0; i < maxUsed; i++) {
+				prob[i] = r.nextDouble();
+				total += prob[i];
+			}
+
+			for (int i = 0; i < maxUsed; i++) {
+				prob[i] /= total;
+				used.add(new Pair<Integer, Double>(i, prob[i]));
+			}
+
+			profile.add(used);
 		}
 	}
 
@@ -35,23 +50,7 @@ public class SynthProfile implements IProfile {
 
 	@Override
 	public ArrayList<Pair<Integer, Double>> getEnergyUsed(int timeSinceSync) {
-		ArrayList<Pair<Integer, Double>> used = new ArrayList<Pair<Integer, Double>>();
-		double[] prob = new double[5];
-
-		Random r = new Random();
-
-		double total = 0;
-		for (int i = 0; i < maxUsed; i++) {
-			prob[i] = r.nextDouble();
-			total += prob[i];
-		}
-
-		for (int i = 0; i < maxUsed; i++) {
-			prob[i] /= total;
-			used.add(new Pair<Integer, Double>(i, prob[i]));
-		}
-
-		return used;
+		return profile.get(timeSinceSync);
 	}
 
 	@Override

@@ -68,52 +68,61 @@ public class ThresholdTableGenerator {
 		for (int i = horizon - 1; i >= 0; i--) {
 			for (int j = 0; j < maxBattery; j++) {
 				for (int k = 0; k <= i; k++) {
-					V[i][j][k] = V_star(i, j, k);
+					V[i][j][k] = V(i, j, k);
 				}
 			}
 		}
 		return V;
 	}
 
-	private double V_star(int t, int Er, int tau) {
-		double p = this.profile.getChargeProb(t);
-		return Er * Re * p + V(t, Er, tau) * (1 - p);
-	}
+//	private double V_star(int t, int Er, int tau) {
+//		double p = this.profile.getChargeProb(t);
+//		return Er * Re * p + V(t, Er, tau) * (1 - p);
+//	}
 
 	private double V(int t, int Er, int tau) {
-		if (Er == 0) {
-			return 0;
-		} else if (t == horizon - 1) {
-			return Er * Re;
-		} else {
-			if(t!=9 && Er !=0){
-				System.out.println();
-			}
+//		if (Er == 0) {
+//			return 0;
+//		} else if (t == horizon - 1) {
+//			return Er * Re;
+//		} else {
+//			if(t!=9 && Er !=0){
+//				double vs1 = vs[t][Er][tau];
+//				double vi1 = vi[t][Er][tau];
+//				System.out.println();
+//			}
 			
 			
 			if (vs[t][Er][tau] == -1) {
 				vs[t][Er][tau] = reward(t, Er, tau, true);
 			}
 			if (vi[t][Er][tau] == -1) {
-				vi[t][Er][tau] = reward(t, Er, tau, true);
+				vi[t][Er][tau] = reward(t, Er, tau, false);
 			}
 
 			double Vs = vs[t][Er][tau];
 			double Vi = vi[t][Er][tau];
 
 			
-			if(t!=9 && Er !=0){
-				System.out.println();
-			}
+//			if(t!=9 && Er !=0){
+//				System.out.println();
+//			}
 			
 			
-			policy[t][Er][tau] = (Vs >= Vi);
+			policy[t][Er][tau] = (Vs > Vi);
 
-			return (Vs >= Vi) ? Vs : Vi;
-		}
+			return (Vs > Vi) ? Vs : Vi;
+//		}
 	}
 
 	private double reward(int t, int Er, int tau, boolean sync) {
+		if (Er == 0) {
+			return 0;
+		} else if (t == horizon - 1) {
+			return Er * Re;
+		}
+		
+		
 		ArrayList<Pair<Integer, Double>> RV = profile.getEnergyUsed(t);
 
 		double reward = 0;
@@ -139,10 +148,25 @@ public class ThresholdTableGenerator {
 				}
 			}
 
-			double v = V(t + 1, E, tau + 1) + rewardPerEo * used + syncReward;
+			double v;
+			if (syncReward == 0){
+				v = V(t + 1, E, tau + 1) + rewardPerEo * used + syncReward;
+			}
+			else
+				v = V(t + 1, E, 0) + rewardPerEo * used + syncReward;
+			
+			
 			reward += prob * v;
 		}
-
+		
+		
+		
+//		if(t==8 && Er ==1){
+//			System.out.println();
+//		}
+		
+		
+		
 		return reward;
 	}
 
@@ -152,7 +176,8 @@ public class ThresholdTableGenerator {
 		double[][][] V = th.getThreshold();
 
 		// double [][] tau_star = new double []
-		for (int i = th.horizon - 1; i >= 0; i--) {
+//		for (int i = th.horizon - 1; i >= 0; i--) {
+		int i =8;
 			for (int j = 0; j < th.maxBattery; j++) {
 				System.out.print("t:"+i+" ");
 				System.out.print("Er:"+j+" ");
@@ -160,10 +185,14 @@ public class ThresholdTableGenerator {
 				for (int k = 0; k <= i; k++) {
 					System.out.print("-"+k+"-");
 					System.out.print(th.policy[i][j][k]);
+					System.out.print("-");
+					System.out.format("%2.2f",th.vs[i][j][k]);
+					System.out.print("-");
+					System.out.format("%2.2f",th.vi[i][j][k]);
 				}
 				System.out.println();
 			}
-		}
+//		}
 
 		System.out.println();
 	}
